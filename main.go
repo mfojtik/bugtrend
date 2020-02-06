@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -27,23 +26,26 @@ func writeBurnDownReport(release string, bugs []bugzilla.Bug) error {
 }
 
 func writeBurnDownSummary(release string) error {
-	summaryFile := []byte{}
+	summaryFile := ""
 	err := filepath.Walk(path.Join("reports", release), func(p string, info os.FileInfo, err error) error {
 		if info.IsDir() || !strings.HasSuffix(info.Name(), ".json") {
 			return nil
 		}
-		content, err := ioutil.ReadFile(path.Join("reports", release, info.Name()))
-		if len(summaryFile) == 0 {
-			summaryFile = content
+		if info.Name() == "burndown.json" {
 			return nil
 		}
-		summaryFile = bytes.Join([][]byte{summaryFile, content}, []byte(",\n"))
+		content, err := ioutil.ReadFile(path.Join("reports", release, info.Name()))
+		if len(summaryFile) == 0 {
+			summaryFile = string(content)
+			return nil
+		}
+		summaryFile = strings.Join([]string{summaryFile, string(content)}, ",\n")
 		return nil
 	})
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(path.Join("reports", release, "burndown.json"), append(append([]byte("["), summaryFile...), []byte("]")...), os.ModePerm)
+	return ioutil.WriteFile(path.Join("reports", release, "burndown.json"), []byte("["+summaryFile+"]"), os.ModePerm)
 }
 
 func runReportsHttpServer(release string) error {
