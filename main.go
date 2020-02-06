@@ -75,6 +75,6 @@ func main() {
 		}
 
 		log.Printf("Successfully processed %d bugs...", len(result.Bugs))
-		time.Sleep(15 * time.Minute)
+		time.Sleep(1 * time.Hour)
 	}
 }
