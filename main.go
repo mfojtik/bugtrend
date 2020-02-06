@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -8,6 +9,8 @@ import (
 	"net/url"
 	"os"
 	"path"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/mfojtik/bugtrend/pkg/bugzilla"
@@ -21,6 +24,26 @@ func writeBurnDownReport(release string, bugs []bugzilla.Bug) error {
 		return err
 	}
 	return ioutil.WriteFile(fmt.Sprintf("reports/%s/burndown_%d.json", release, burnDownReport.Timestamp.Unix()), burnDownBytes, os.ModePerm)
+}
+
+func writeBurnDownSummary(release string) error {
+	summaryFile := []byte{}
+	err := filepath.Walk(path.Join("reports", release), func(p string, info os.FileInfo, err error) error {
+		if info.IsDir() || !strings.HasSuffix(info.Name(), ".json") {
+			return nil
+		}
+		content, err := ioutil.ReadFile(path.Join("reports", release, info.Name()))
+		if len(summaryFile) == 0 {
+			summaryFile = content
+			return nil
+		}
+		summaryFile = bytes.Join([][]byte{summaryFile, content}, []byte(",\n"))
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+	return ioutil.WriteFile(path.Join("reports", release, "burndown.json"), append(append([]byte("["), summaryFile...), []byte("]")...), os.ModePerm)
 }
 
 func runReportsHttpServer(release string) error {
@@ -72,6 +95,9 @@ func main() {
 
 		if err := writeBurnDownReport(release, result.Bugs); err != nil {
 			log.Printf("WARNING: Unable to write %s burndown report: %v", release, err)
+		}
+		if err := writeBurnDownSummary(release); err != nil {
+			log.Printf("WARNING: Unable to write %s burndown summary: %v", release, err)
 		}
 
 		log.Printf("Successfully processed %d bugs...", len(result.Bugs))
