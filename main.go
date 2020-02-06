@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mfojtik/bugtrend/pkg/analyze"
 	"github.com/mfojtik/bugtrend/pkg/bugzilla"
 	"github.com/mfojtik/bugtrend/pkg/report"
 )
@@ -101,6 +102,8 @@ func main() {
 		if err := writeBurnDownSummary(release); err != nil {
 			log.Printf("WARNING: Unable to write %s burndown summary: %v", release, err)
 		}
+
+		analyze.WriteIndex(path.Join("reports", release, "index.html"), path.Join("reports", release, "burndown.json"), release)
 
 		log.Printf("Successfully processed %d bugs...", len(result.Bugs))
 		time.Sleep(1 * time.Hour)

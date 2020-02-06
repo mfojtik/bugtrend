@@ -1,0 +1,48 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Awesome go-echarts</title>
+    <script src="https://go-echarts.github.io/go-echarts-assets/assets/echarts.min.js"></script>
+    <link href="https://go-echarts.github.io/go-echarts-assets/assets/bulma.min.css" rel="stylesheet">
+</head>
+
+<body>
+<div class="select" style="margin-right:10px; margin-top:10px; position:fixed; right:10px;"></div>
+
+    
+<div class="container">
+    <div class="item" id="eIbRJrJcDKHT"
+         style="width:900px;height:500px;"></div>
+</div>
+<script type="text/javascript">
+    "use strict";
+    let myChart_eIbRJrJcDKHT = echarts.init(document.getElementById('eIbRJrJcDKHT'), "white");
+    let option_eIbRJrJcDKHT = {
+        title: {"text":"4.4.0 bug burndown",},
+        tooltip: {},
+        legend: {},
+        xAxis: [{"data":["2020-02-06T12:05:53.22737363Z","2020-02-06T12:21:07.91879124Z","2020-02-06T14:51:33.849571+01:00","2020-02-06T14:54:12.28166+01:00","2020-02-06T19:32:36.603675+01:00","2020-02-06T19:34:55.7945+01:00"],"splitArea":{"show":false,},"splitLine":{"show":false,}}],
+        yAxis: [{"axisLabel":{"show":true},"splitArea":{"show":false,},"splitLine":{"show":false,}}],
+        series: [
+        {"name":"NEW","type":"line","data":[44,44,44,44,37,37],"label":{"show":false},"emphasis":{"label":{"show":false},},"markLine":{"label":{"show":false}},"markPoint":{"label":{"show":false}},},
+        {"name":"ASSIGNED","type":"line","data":[26,26,27,27,28,28],"label":{"show":false},"emphasis":{"label":{"show":false},},"markLine":{"label":{"show":false}},"markPoint":{"label":{"show":false}},},
+        {"name":"POST","type":"line","data":[4,4,4,4,5,5],"label":{"show":false},"emphasis":{"label":{"show":false},},"markLine":{"label":{"show":false}},"markPoint":{"label":{"show":false}},},
+        {"name":"MODIFIED","type":"line","data":[0,0,0,0,0,0],"label":{"show":false},"emphasis":{"label":{"show":false},},"markLine":{"label":{"show":false}},"markPoint":{"label":{"show":false}},},
+        {"name":"ON_QA","type":"line","data":[11,11,11,11,11,11],"label":{"show":false},"emphasis":{"label":{"show":false},},"markLine":{"label":{"show":false}},"markPoint":{"label":{"show":false}},},
+        {"name":"VERIFIED","type":"line","data":[35,35,35,35,35,35],"label":{"show":false},"emphasis":{"label":{"show":false},},"markLine":{"label":{"show":false}},"markPoint":{"label":{"show":false}},},
+        {"name":"CLOSED","type":"line","data":[121,121,121,121,125,125],"label":{"show":false},"emphasis":{"label":{"show":false},},"markLine":{"label":{"show":false}},"markPoint":{"label":{"show":false}},},
+        ],
+        color: ["#c23531","#2f4554","#61a0a8","#d48265","#91c7ae","#749f83","#ca8622","#bda29a","#6e7074","#546570","#c4ccd3"],
+    };
+    myChart_eIbRJrJcDKHT.setOption(option_eIbRJrJcDKHT);
+</script>
+
+    <br/>
+<style>
+    .container {display: flex;justify-content: center;align-items: center;}
+    .item {margin: auto;}
+</style>
+</body>
+</html>
