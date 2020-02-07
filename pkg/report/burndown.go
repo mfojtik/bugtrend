@@ -7,23 +7,25 @@ import (
 	"github.com/mfojtik/bugtrend/pkg/bugzilla"
 )
 
-type StatusCount struct {
+type BurndownStatus struct {
 	Status string `json:"status"`
 	Count  int    `json:"count"`
 }
 
-type BurnDownReport struct {
-	Timestamp time.Time      `json:"timestamp"`
-	Total     int            `json:"total"`
-	Counts    []*StatusCount `json:"counts"`
+type Burndown struct {
+	Timestamp time.Time         `json:"timestamp"`
+	Total     int               `json:"total"`
+	Counts    []*BurndownStatus `json:"counts"`
 }
 
-func (b *BurnDownReport) ToJson() ([]byte, error) {
+type BurndownList []Burndown
+
+func (b *Burndown) Write() ([]byte, error) {
 	return json.Marshal(&b)
 }
 
-func NewBurnDown(bugs []bugzilla.Bug) *BurnDownReport {
-	counts := []*StatusCount{}
+func NewBurnDown(bugs []bugzilla.Bug) *Burndown {
+	counts := []*BurndownStatus{}
 	for i := range bugs {
 		found := false
 		for c := range counts {
@@ -34,13 +36,13 @@ func NewBurnDown(bugs []bugzilla.Bug) *BurnDownReport {
 			}
 		}
 		if !found {
-			counts = append(counts, &StatusCount{
+			counts = append(counts, &BurndownStatus{
 				Status: bugs[i].Status,
 				Count:  1,
 			})
 		}
 	}
-	return &BurnDownReport{
+	return &Burndown{
 		Timestamp: time.Now(),
 		Total:     len(bugs),
 		Counts:    counts,

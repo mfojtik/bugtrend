@@ -2,7 +2,7 @@ all: build
 .PHONY: all
 
 build:
-	go build -trimpath .
+	go build -mod=vendor -trimpath .
 
 push:
 	docker build -t mfojtik/bugtrend:v0.0.2 && \

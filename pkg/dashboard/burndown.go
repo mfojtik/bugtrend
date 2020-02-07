@@ -1,25 +1,21 @@
-package analyze
+package dashboard
 
 import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"os"
 
 	"github.com/go-echarts/go-echarts/charts"
 
 	"github.com/mfojtik/bugtrend/pkg/report"
 )
 
-type reportList []report.BurnDownReport
-
-func bugBurnDownChart(sourceJsonPath, release string) (*charts.Line, error) {
-	reportFile, err := ioutil.ReadFile(sourceJsonPath)
+func getBugBurndownChart(config DashboardConfig) (*charts.Line, error) {
+	reportFile, err := ioutil.ReadFile(config.BurndownSeriesFile)
 	if err != nil {
 		return nil, err
 	}
-
-	var series reportList
+	var series report.BurndownList
 	if err := json.Unmarshal(reportFile, &series); err != nil {
 		return nil, err
 	}
@@ -35,8 +31,7 @@ func bugBurnDownChart(sourceJsonPath, release string) (*charts.Line, error) {
 	}
 
 	perStateSeries := map[string][]float64{}
-	xValues := []string{}
-
+	var xValues []string
 	for _, serie := range series {
 		xValues = append(xValues, fmt.Sprintf("%02d/%02d/%d %02d:%02d", serie.Timestamp.Month(), serie.Timestamp.Day(), serie.Timestamp.Year(), serie.Timestamp.Hour(), serie.Timestamp.Minute()))
 		for _, state := range states {
@@ -53,34 +48,11 @@ func bugBurnDownChart(sourceJsonPath, release string) (*charts.Line, error) {
 			}
 		}
 	}
-
 	c := charts.NewLine()
-	c.SetGlobalOptions(charts.TitleOpts{Title: fmt.Sprintf("%s", release)})
+	c.SetGlobalOptions(charts.TitleOpts{Title: fmt.Sprintf("%s", config.Release)})
 	c.AddXAxis(xValues)
 	for _, state := range states {
 		c.AddYAxis(state, perStateSeries[state])
 	}
 	return c, nil
-}
-
-type DashboardConfig struct {
-	BurndownSeriesFile string
-	OutputFile         string
-	Release            string
-}
-
-func WriteDashboard(config DashboardConfig) error {
-	p := charts.NewPage()
-
-	if burndown, err := bugBurnDownChart(config.BurndownSeriesFile, config.Release); err != nil {
-		return err
-	} else {
-		p.Add(burndown)
-	}
-
-	f, err := os.Create(config.OutputFile)
-	if err != nil {
-		return err
-	}
-	return p.Render(f)
 }
