@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 
 	"github.com/go-echarts/go-echarts/charts"
@@ -14,17 +13,15 @@ import (
 
 type reportList []report.BurnDownReport
 
-func WriteIndex(path string, summaryPath string, release string) {
-	reportFile, err := ioutil.ReadFile(summaryPath)
+func bugBurnDownChart(sourceJsonPath, release string) (*charts.Line, error) {
+	reportFile, err := ioutil.ReadFile(sourceJsonPath)
 	if err != nil {
-		log.Printf("failed to open file: %v", err)
-		return
+		return nil, err
 	}
 
 	var series reportList
 	if err := json.Unmarshal(reportFile, &series); err != nil {
-		log.Printf("failed to parse JSON: %v", err)
-		return
+		return nil, err
 	}
 
 	states := []string{
@@ -57,27 +54,33 @@ func WriteIndex(path string, summaryPath string, release string) {
 		}
 	}
 
+	c := charts.NewLine()
+	c.SetGlobalOptions(charts.TitleOpts{Title: fmt.Sprintf("%s", release)})
+	c.AddXAxis(xValues)
+	for _, state := range states {
+		c.AddYAxis(state, perStateSeries[state])
+	}
+	return c, nil
+}
+
+type DashboardConfig struct {
+	BurndownSeriesFile string
+	OutputFile         string
+	Release            string
+}
+
+func WriteDashboard(config DashboardConfig) error {
 	p := charts.NewPage()
 
-	bar := charts.NewLine()
-	bar.SetGlobalOptions(charts.TitleOpts{Title: fmt.Sprintf("%s bugs", release)})
-	bar.AddXAxis(xValues).
-		AddYAxis("NEW", perStateSeries["NEW"]).
-		AddYAxis("ASSIGNED", perStateSeries["ASSIGNED"]).
-		AddYAxis("POST", perStateSeries["POST"]).
-		AddYAxis("MODIFIED", perStateSeries["MODIFIED"]).
-		AddYAxis("ON_QA", perStateSeries["ON_QA"]).
-		AddYAxis("VERIFIED", perStateSeries["VERIFIED"]).
-		AddYAxis("CLOSED", perStateSeries["CLOSED"])
+	if burndown, err := bugBurnDownChart(config.BurndownSeriesFile, config.Release); err != nil {
+		return err
+	} else {
+		p.Add(burndown)
+	}
 
-	p.Add(bar)
-
-	f, err := os.Create(path)
+	f, err := os.Create(config.OutputFile)
 	if err != nil {
-		log.Printf("failed to create: %v", err)
-		return
+		return err
 	}
-	if err := p.Render(f); err != nil {
-		log.Printf("render failed: %v", err)
-	}
+	return p.Render(f)
 }

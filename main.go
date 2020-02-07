@@ -49,7 +49,7 @@ func writeBurnDownSummary(release string) error {
 	return ioutil.WriteFile(path.Join("reports", release, "burndown.json"), []byte("["+summaryFile+"]"), os.ModePerm)
 }
 
-func runReportsHttpServer(release string) error {
+func runDashboardHttpServer(release string) error {
 	releaseDir := path.Join("reports", release)
 	http.Handle("/", http.FileServer(http.Dir(releaseDir)))
 	log.Printf("Serving %q on HTTP: localhost:%s\n", releaseDir, "8080")
@@ -82,10 +82,18 @@ func main() {
 	}
 
 	go func() {
-		if err := runReportsHttpServer(release); err != nil {
+		if err := runDashboardHttpServer(release); err != nil {
 			log.Fatal(err)
 		}
 	}()
+
+	reportsDir := path.Join("reports", release)
+
+	dashboardConfig := analyze.DashboardConfig{
+		BurndownSeriesFile: path.Join(reportsDir, "burndown.json"),
+		OutputFile:         path.Join(reportsDir, "index.html"),
+		Release:            release,
+	}
 
 	// main loop
 	for {
@@ -99,13 +107,16 @@ func main() {
 		if err := writeBurnDownReport(release, result.Bugs); err != nil {
 			log.Printf("WARNING: Unable to write %s burndown report: %v", release, err)
 		}
+
 		if err := writeBurnDownSummary(release); err != nil {
 			log.Printf("WARNING: Unable to write %s burndown summary: %v", release, err)
 		}
 
-		analyze.WriteIndex(path.Join("reports", release, "index.html"), path.Join("reports", release, "burndown.json"), release)
+		if err := analyze.WriteDashboard(dashboardConfig); err != nil {
+			log.Printf("WARNING: Unable to write %s dashboard: %v", err)
+		}
 
-		log.Printf("Successfully processed %d bugs...", len(result.Bugs))
-		time.Sleep(1 * time.Hour)
+		log.Printf("Successfully processed %d bugs... ", len(result.Bugs))
+		time.Sleep(4 * time.Hour)
 	}
 }
