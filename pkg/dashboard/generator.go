@@ -24,7 +24,7 @@ func WriteDashboard(config DashboardConfig) error {
 		return err
 	}
 	burndown.Title = "Bug Burndown"
-	burndown.Subtitle = fmt.Sprintf("Bugs with Target Release %s or Unspecified.", config.Release)
+	burndown.Subtitle = fmt.Sprintf("Bugs with Target Release %s or Unspecified.", config.Release) + burndown.Subtitle
 	burndown.LegendOpts.Bottom = "0"
 	p.Add(burndown)
 

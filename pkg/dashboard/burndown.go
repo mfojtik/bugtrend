@@ -54,5 +54,6 @@ func getBugBurndownChart(config DashboardConfig) (*charts.Line, error) {
 	for _, state := range states {
 		c.AddYAxis(state, perStateSeries[state])
 	}
+	c.Subtitle = fmt.Sprintf("Total: %d", series[len(series)-1].Total)
 	return c, nil
 }
