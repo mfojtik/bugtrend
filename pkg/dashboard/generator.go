@@ -8,23 +8,25 @@ import (
 )
 
 type DashboardConfig struct {
-	BurndownSeriesFile string
-	ClosedSeriesFile   string
-	BugTypesSeriesFile string
-	OutputFile         string
-	Release            string
+	BurndownSeriesFile  string
+	ClosedSeriesFile    string
+	BugTypesSeriesFile  string
+	OutputFile          string
+	Release             string
+	ComponentSeriesFile string
+	ComponentList       []string
 }
 
 func WriteDashboard(config DashboardConfig) error {
 	p := charts.NewPage()
-	p.PageTitle = "Group-B: Bugzilla Charts"
+	p.PageTitle = fmt.Sprintf("Group-B: %s Bugzilla Charts", config.Release)
 
 	burndown, err := getBugBurndownChart(config)
 	if err != nil {
 		return err
 	}
-	burndown.Title = "Bug Burndown"
-	burndown.Subtitle = fmt.Sprintf("Bugs with Target Release %s or Unspecified.", config.Release) + burndown.Subtitle
+	burndown.Title = "Burndown"
+	burndown.Subtitle = fmt.Sprintf("%s target release or unspecified.", config.Release) + burndown.Subtitle
 	burndown.LegendOpts.Bottom = "0"
 	p.Add(burndown)
 
@@ -32,8 +34,8 @@ func WriteDashboard(config DashboardConfig) error {
 	if err != nil {
 		return err
 	}
-	closed.Title = "Closed Breakout"
-	closed.Subtitle = fmt.Sprintf("Closed %s bugs resolution breakout", config.Release)
+	closed.Title = "Closed"
+	closed.Subtitle = fmt.Sprintf("%s closed bugs resolutions.", config.Release) + closed.Subtitle
 	closed.LegendOpts.Bottom = "0"
 	p.Add(closed)
 
@@ -41,10 +43,19 @@ func WriteDashboard(config DashboardConfig) error {
 	if err != nil {
 		return err
 	}
-	types.Title = "Bug By Type"
-	types.Subtitle = fmt.Sprintf("%s bugs counts by type", config.Release)
+	types.Title = "Types"
+	types.Subtitle = fmt.Sprintf("%s bugs counts by type.", config.Release)
 	types.LegendOpts.Bottom = "0"
 	p.Add(types)
+
+	components, err := getComponentsChart(config)
+	if err != nil {
+		return err
+	}
+	components.Title = "Components"
+	components.Subtitle = fmt.Sprintf("%s bugs counts by component.", config.Release)
+	components.LegendOpts.Bottom = "0"
+	p.Add(components)
 
 	f, err := os.Create(config.OutputFile)
 	if err != nil {

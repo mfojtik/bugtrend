@@ -57,11 +57,13 @@ func main() {
 	reportsDir := path.Join("reports", release)
 
 	dashboardConfig := dashboard.DashboardConfig{
-		BurndownSeriesFile: path.Join(reportsDir, "burndown.json"),
-		ClosedSeriesFile:   path.Join(reportsDir, "closed.json"),
-		BugTypesSeriesFile: path.Join(reportsDir, "types.json"),
-		OutputFile:         path.Join(reportsDir, "index.html"),
-		Release:            release,
+		BurndownSeriesFile:  path.Join(reportsDir, "burndown.json"),
+		ClosedSeriesFile:    path.Join(reportsDir, "closed.json"),
+		ComponentSeriesFile: path.Join(reportsDir, "components.json"),
+		ComponentList:       values["component"],
+		BugTypesSeriesFile:  path.Join(reportsDir, "types.json"),
+		OutputFile:          path.Join(reportsDir, "index.html"),
+		Release:             release,
 	}
 
 	// main loop
@@ -89,6 +91,12 @@ func main() {
 		types := report.NewTimeSerieWriter("types", release, time.Now())
 		if err := types.WriteTimeSerie(typesReport); err != nil {
 			log.Printf("WARNING: Unable to write %s types report: %v", release, err)
+		}
+
+		componentReport := report.NewComponent(result.Bugs)
+		components := report.NewTimeSerieWriter("components", release, time.Now())
+		if err := components.WriteTimeSerie(componentReport); err != nil {
+			log.Printf("WARNING: Unable to write %s component report: %v", release, err)
 		}
 
 		log.Printf("Successfully processed %d bugs... ", len(result.Bugs))

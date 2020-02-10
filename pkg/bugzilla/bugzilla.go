@@ -2,9 +2,7 @@ package bugzilla
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"net/url"
-	"os"
 
 	"github.com/ddliu/go-httpclient"
 )
@@ -42,7 +40,6 @@ func (c Client) Search(values url.Values) (*SearchResult, error) {
 	if err != nil {
 		return nil, err
 	}
-	ioutil.WriteFile("get.json", responseBytes, os.ModePerm)
 	var result SearchResult
 	if err := json.Unmarshal(responseBytes, &result); err != nil {
 		return nil, err

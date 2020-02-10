@@ -10,52 +10,40 @@ import (
 	"github.com/mfojtik/bugtrend/pkg/report"
 )
 
-func getClosedChart(config DashboardConfig) (*charts.Line, error) {
-	reportFile, err := ioutil.ReadFile(config.ClosedSeriesFile)
+func getComponentsChart(config DashboardConfig) (*charts.Line, error) {
+	reportFile, err := ioutil.ReadFile(config.ComponentSeriesFile)
 	if err != nil {
 		return nil, err
 	}
-	var series report.ClosedList
+	var series report.ComponentList
 	if err := json.Unmarshal(reportFile, &series); err != nil {
 		return nil, err
 	}
 
-	resolutions := []string{
-		"CANTFIX",
-		"CURRENTRELEASE",
-		"DEFERRED",
-		"DUPLICATE",
-		"ERRATA",
-		"INSUFFICIENT_DATA",
-		"NOTABUG",
-		"UPSTREAM",
-		"WONTFIX",
-	}
-
-	perStateSeries := map[string][]float64{}
+	perComponentSeries := map[string][]float64{}
 	var xValues []string
 	for _, serie := range series {
 		xValues = append(xValues, fmt.Sprintf("%02d/%02d/%d %02d:%02d", serie.Timestamp.Month(), serie.Timestamp.Day(), serie.Timestamp.Year(), serie.Timestamp.Hour(), serie.Timestamp.Minute()))
-		for _, resolution := range resolutions {
+		for _, componentName := range config.ComponentList {
 			found := false
 			for _, c := range serie.Counts {
-				if c.Resolution == resolution {
+				if c.ComponentName == componentName {
 					found = true
-					perStateSeries[resolution] = append(perStateSeries[resolution], float64(c.Count))
+					perComponentSeries[componentName] = append(perComponentSeries[componentName], float64(c.Count))
 					break
 				}
 			}
 			if !found {
-				perStateSeries[resolution] = append(perStateSeries[resolution], float64(0))
+				perComponentSeries[componentName] = append(perComponentSeries[componentName], float64(0))
 			}
 		}
 	}
 	c := charts.NewLine()
 	c.SetGlobalOptions(charts.TitleOpts{Title: fmt.Sprintf("%s", config.Release)})
 	c.AddXAxis(xValues)
-	for _, state := range resolutions {
-		c.AddYAxis(state, perStateSeries[state])
+	for _, component := range config.ComponentList {
+		c.AddYAxis(component, perComponentSeries[component])
 	}
-	c.Subtitle = fmt.Sprintf("Total Closed: %d", series[len(series)-1].Total)
+	c.Subtitle = fmt.Sprintf(" Total: %d", series[len(series)-1].Total)
 	return c, nil
 }
